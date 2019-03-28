@@ -8,26 +8,36 @@
 
 import UIKit
 
-class ViewController: UIViewController, CarsProtocol {
+protocol updatingViewFromApiProtocol {
+    var listCars:[Carro] {get set}
+    func showError(message:String, title:String)
+}
+
+class ViewController: UIViewController, updatingViewFromApiProtocol {
+    
+    func showError(message: String, title: String) {
+        Alert.showAlertError(mensagemErro: message, titleMsgErro: title, view: self)
+    }
+    
+    var tableCarDataSourceAndDelegate:TableCarDatasourceAndDelegate?
+    var carrosProtocol:CarsProtocol = CarrosPresenter()
+    
+    var listCars: [Carro] = []{
+        didSet{
+            tableCarDataSourceAndDelegate?.dados = listCars
+            tbl.reloadData()
+        }
+    }
     
     @IBOutlet weak var tbl: UITableView!
-    var tableViewCarDatasourceAndDelegate:TableCarDatasourceAndDelegate?
-    var carrosPresenter:CarrosPresenter?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableViewCarDatasourceAndDelegate = TableCarDatasourceAndDelegate(infoTbl: tbl, viewControllerToPress: self)
-        carrosPresenter = CarrosPresenter.init(protocolCar: self)
-        
+        carrosProtocol.viewControllerReference = self
+        carrosProtocol.getCars()
+        tableCarDataSourceAndDelegate = TableCarDatasourceAndDelegate(infoTbl: tbl, viewControllerToPress: self)
     }
     
-    func presentTableData(carList: [Carro]) {
-        self.tableViewCarDatasourceAndDelegate?.dados = carList
-        self.tbl.reloadData()
-    }
-    
-    func presentAlertError(mensagem: String, titleMessage: String) {
-        Alert.showAlertError(mensagemErro: mensagem, titleMsgErro: titleMessage, view: self)
-    }
+
 }
 
